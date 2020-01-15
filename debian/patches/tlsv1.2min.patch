@@ -1,0 +1,131 @@
+Description: set security level 1 when testing TLSv1 & TLSv1.1.
+ The default security level 2 prohibits TLS versions below TLSv1.2
+Author: Dimitri John Ledkov <xnox@ubuntu.com>
+
+
+Index: libnet-ssleay-perl-1.88/t/local/44_sess.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/44_sess.t
++++ libnet-ssleay-perl-1.88/t/local/44_sess.t
+@@ -156,10 +156,12 @@ sub make_ctx
+ 	return undef unless exists &Net::SSLeay::TLSv1_1_method;
+ 
+ 	$ctx = Net::SSLeay::CTX_new_with_method(Net::SSLeay::TLSv1_1_method());
++	Net::SSLeay::CTX_set_security_level($ctx, 1);
+     }
+     else
+     {
+ 	$ctx = Net::SSLeay::CTX_new_with_method(Net::SSLeay::TLSv1_method());
++	Net::SSLeay::CTX_set_security_level($ctx, 1);
+     }
+ 
+     return $ctx;
+Index: libnet-ssleay-perl-1.88/t/local/41_alpn_support.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/41_alpn_support.t
++++ libnet-ssleay-perl-1.88/t/local/41_alpn_support.t
+@@ -46,6 +46,8 @@ Net::SSLeay::initialize();
+         select($old_out);
+ 
+         my $ctx = Net::SSLeay::CTX_tlsv1_new();
++        # Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++        Net::SSLeay::CTX_set_security_level($ctx, 1);
+         Net::SSLeay::set_cert_and_key($ctx, $cert_pem, $key_pem);
+ 
+         my $rv = Net::SSLeay::CTX_set_alpn_select_cb($ctx, ['http/1.1','spdy/2']);
+@@ -79,6 +81,8 @@ Net::SSLeay::initialize();
+     select($old_out);
+ 
+     my $ctx1 = Net::SSLeay::CTX_tlsv1_new();
++    # Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++    Net::SSLeay::CTX_set_security_level($ctx1, 1);
+ 
+     my $rv = Net::SSLeay::CTX_set_alpn_protos($ctx1, ['spdy/2','http/1.1']);
+     push @results, [ $rv==0, 'CTX_set_alpn_protos'];
+Index: libnet-ssleay-perl-1.88/t/local/42_info_callback.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/42_info_callback.t
++++ libnet-ssleay-perl-1.88/t/local/42_info_callback.t
+@@ -36,6 +36,8 @@ Net::SSLeay::initialize();
+ 	for(qw(ctx ssl)) {
+ 	    my $cl = $server->accept or BAIL_OUT("accept failed: $!");
+ 	    my $ctx = Net::SSLeay::CTX_tlsv1_new();
++	    # Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++	    Net::SSLeay::CTX_set_security_level($ctx, 1);
+ 	    Net::SSLeay::set_cert_and_key($ctx, $cert_pem, $key_pem);
+ 	    my $ssl = Net::SSLeay::new($ctx);
+ 	    Net::SSLeay::set_fd($ssl, fileno($cl));
+@@ -63,6 +65,8 @@ sub client {
+     my $cl = IO::Socket::INET->new($saddr) 
+ 	or BAIL_OUT("failed to connect to server: $!");
+     my $ctx = Net::SSLeay::CTX_tlsv1_new();
++    # Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++    Net::SSLeay::CTX_set_security_level($ctx, 1);
+     Net::SSLeay::CTX_set_options($ctx, &Net::SSLeay::OP_ALL);
+     Net::SSLeay::CTX_set_info_callback($ctx, $infocb) if $where eq 'ctx';
+     my $ssl = Net::SSLeay::new($ctx);
+Index: libnet-ssleay-perl-1.88/t/local/40_npn_support.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/40_npn_support.t
++++ libnet-ssleay-perl-1.88/t/local/40_npn_support.t
+@@ -47,6 +47,8 @@ Net::SSLeay::initialize();
+         select($old_out);
+ 
+         my $ctx = Net::SSLeay::CTX_tlsv1_new();
++        # Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++        Net::SSLeay::CTX_set_security_level($ctx, 1);
+         Net::SSLeay::set_cert_and_key($ctx, $cert_pem, $key_pem);
+ 
+         my $rv = Net::SSLeay::CTX_set_next_protos_advertised_cb($ctx, ['spdy/2','http1.1']);
+@@ -80,6 +82,8 @@ Net::SSLeay::initialize();
+     select($old_out);
+ 
+     my $ctx1 = Net::SSLeay::CTX_tlsv1_new();
++    # Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++    Net::SSLeay::CTX_set_security_level($ctx1, 1);
+ 
+     my $rv = Net::SSLeay::CTX_set_next_proto_select_cb($ctx1, ['http1.1','spdy/2']);
+     push @results, [ $rv==1, 'CTX_set_next_proto_select_cb'];
+Index: libnet-ssleay-perl-1.88/t/local/45_exporter.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/45_exporter.t
++++ libnet-ssleay-perl-1.88/t/local/45_exporter.t
+@@ -54,10 +54,12 @@ sub make_ctx
+ 	return undef unless exists &Net::SSLeay::TLSv1_1_method;
+ 
+ 	$ctx = Net::SSLeay::CTX_new_with_method(Net::SSLeay::TLSv1_1_method());
++	Net::SSLeay::CTX_set_security_level($ctx, 1);
+     }
+     else
+     {
+ 	$ctx = Net::SSLeay::CTX_new_with_method(Net::SSLeay::TLSv1_method());
++	Net::SSLeay::CTX_set_security_level($ctx, 1);
+     }
+ 
+     return $ctx;
+Index: libnet-ssleay-perl-1.88/t/local/65_ticket_sharing_2.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/65_ticket_sharing_2.t
++++ libnet-ssleay-perl-1.88/t/local/65_ticket_sharing_2.t
+@@ -113,6 +113,8 @@ sub _handshake {
+     sub new {
+ 	my ($class,%args) = @_;
+ 	my $ctx = Net::SSLeay::CTX_tlsv1_new();
++	# Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++	Net::SSLeay::CTX_set_security_level($ctx, 1);
+ 	Net::SSLeay::CTX_set_options($ctx,Net::SSLeay::OP_ALL());
+ 	Net::SSLeay::CTX_set_cipher_list($ctx,'AES128-SHA');
+ 	my $id = 'client';
+Index: libnet-ssleay-perl-1.88/t/local/66_curves.t
+===================================================================
+--- libnet-ssleay-perl-1.88.orig/t/local/66_curves.t
++++ libnet-ssleay-perl-1.88/t/local/66_curves.t
+@@ -103,6 +103,8 @@ sub _handshake {
+     sub new {
+ 	my ($class,%args) = @_;
+ 	my $ctx = Net::SSLeay::CTX_tlsv1_new();
++	# Seclevel 2 prohibits sha1 certs; and tls versions < 1.2
++	Net::SSLeay::CTX_set_security_level($ctx, 1);
+ 	Net::SSLeay::CTX_set_options($ctx,Net::SSLeay::OP_ALL());
+ 	Net::SSLeay::CTX_set_cipher_list($ctx,'ECDHE');
+ 	Net::SSLeay::CTX_set_ecdh_auto($ctx,1)

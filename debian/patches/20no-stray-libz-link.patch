@@ -1,0 +1,23 @@
+From: intrigeri <intrigeri@boum.org>
+Date: Fri, 19 Jul 2019 00:31:20 +0000
+Subject: Avoid unnecessary dependency on libz
+
+---
+ Makefile.PL | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile.PL b/Makefile.PL
+index 31d9c74..052a9ad 100644
+--- a/Makefile.PL
++++ b/Makefile.PL
+@@ -202,8 +202,8 @@ EOM
+     else {
+         push @{ $opts->{lib_links} },
+              ($rsaref
+-              ? qw( ssl crypto RSAglue rsaref z )
+-              : qw( ssl crypto z )
++              ? qw( ssl crypto RSAglue rsaref )
++              : qw( ssl crypto )
+              );
+ 
+         if (($Config{cc} =~ /aCC/i) && $^O eq 'hpux') {
